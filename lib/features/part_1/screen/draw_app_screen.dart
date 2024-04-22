@@ -23,6 +23,11 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
   GlobalKey globalKey = GlobalKey();
   Offset? _stickerPosition;
 
+  List<Sticker> stickers = [
+    Sticker(image: const AssetImage('assets/stickers/cat.png')),
+    // Thêm các sticker khác tại đây
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,9 +64,18 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
               colors.add(selectedColor); // Thêm màu mực cho đường vẽ mới
             });
           },
-          child: CustomPaint(
-            painter: DrawPainter(allPoints: allPoints, colors: colors, allStokeWidths: allStokeWidths),
-            size: Size.infinite,
+          child: Stack(
+            children: [
+              CustomPaint(
+                painter: DrawPainter(allPoints: allPoints, colors: colors, allStokeWidths: allStokeWidths),
+                size: Size.infinite,
+              ),
+              for (var sticker in stickers) Positioned(
+                left: _stickerPosition?.dx ?? 50.0,
+                top: _stickerPosition?.dy ?? 50.0,
+                child: StickerWidget(sticker: sticker, onDrop: onDropSticker, initialOffset: _stickerPosition ?? Offset(50.0, 50.0)),
+              ),
+            ],
           ),
         ),
       ),
@@ -95,6 +109,37 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
                 );
               }).toList(),
             ),
+            IconButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return Container(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: stickers.length,
+                        itemBuilder: (context, index) {
+                          return InkWell(
+                            onTap: () {
+                              Navigator.pop(context); // Close the bottom sheet
+                              setState(() {
+                                _stickerPosition = null; // Clear any previous sticker position
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Image(image: stickers[index].image),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+              icon: Icon(Icons.sticky_note_2),
+            ),
             // Thêm các nút màu khác tại đây
           ],
         ),
@@ -107,6 +152,12 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
     setState(() {
       selectedColor = color;
       colors[colors.length - 1] = selectedColor; // Cập nhật màu mực cho đường vẽ hiện tại
+    });
+  }
+
+  void onDropSticker(Sticker droppedSticker, Offset position) {
+    setState(() {
+      _stickerPosition = position;
     });
   }
 
@@ -151,6 +202,12 @@ class PointWithStroke {
   PointWithStroke({this.offset, this.strokeWidth = 5.0});
 }
 
+class Sticker {
+  final ImageProvider image;
+
+  Sticker({required this.image});
+}
+
 class DrawPainter extends CustomPainter {
   final List<List<Offset?>> allPoints;
   final List<Color> colors;
@@ -186,3 +243,25 @@ class DrawPainter extends CustomPainter {
     return true;
   }
 }
+
+class StickerWidget extends StatelessWidget {
+  final Sticker sticker;
+  final Function(Sticker, Offset) onDrop;
+  final Offset initialOffset;
+
+  const StickerWidget({super.key, required this.sticker, required this.onDrop, required this.initialOffset});
+
+  @override
+  Widget build(BuildContext context) {
+    return Draggable<Sticker>(
+      data: sticker,
+      feedback: Image(image: sticker.image),
+      childWhenDragging: Opacity(opacity: 0.5, child: Image(image: sticker.image)),
+      child: Image(image: sticker.image),
+      onDraggableCanceled: (velocity, offset) {
+        onDrop(sticker, offset);
+      },
+    );
+  }
+}
+
