@@ -23,8 +23,11 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
   GlobalKey globalKey = GlobalKey();
 
   List<Sticker> stickers = [
+    Sticker(image: AssetImage('assets/stickers/angry.png')),
     Sticker(image: AssetImage('assets/stickers/cat.png')),
+    Sticker(image: AssetImage('assets/stickers/corgi.png')),
     Sticker(image: AssetImage('assets/stickers/love.png')),
+    Sticker(image: AssetImage('assets/stickers/mockery.png')),
   ];
   List<Sticker> selectedStickers = [];
   List<Offset> stickerOffsets = [];
@@ -105,6 +108,7 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
         onPressed: () {
           setState(() {
             allPoints.clear();
+            selectedStickers.clear();
           });
         },
         child: const Icon(Icons.clear),
@@ -124,12 +128,24 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
                   strokeWidth = newValue!;
                 });
               },
-              items: <double>[1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0, 15.0].map<DropdownMenuItem<double>>((double value) {
-                return DropdownMenuItem<double>(
-                  value: value,
-                  child: Text('$value'),
-                );
-              }).toList(),
+              items: const <DropdownMenuItem<double>>[
+                DropdownMenuItem<double>(
+                  key: ValueKey('strokeWidth_1'),
+                  value: 1.0,
+                  child: Text('1.0'),
+                ),
+                DropdownMenuItem<double>(
+                  key: ValueKey('strokeWidth_2'),
+                  value: 3.0,
+                  child: Text('3.0'),
+                ),
+                DropdownMenuItem<double>(
+                  key: ValueKey('strokeWidth_3'),
+                  value: 5.0,
+                  child: Text('5.0'),
+                ),
+                // Add other DropdownMenuItem with unique ValueKey for each item
+              ],
             ),
             IconButton(
               onPressed: () {
