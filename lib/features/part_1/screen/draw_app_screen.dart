@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class DrawAppScreen extends StatefulWidget {
-  const DrawAppScreen({super.key});
+  const DrawAppScreen({Key? key}) : super(key: key);
 
   @override
   State<DrawAppScreen> createState() => _DrawAppScreenState();
@@ -18,15 +18,16 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
   Color selectedColor = Colors.black;
 
   List<List<PointWithStroke>> allStokeWidths = [[]];
-  double strokeWidth = 5.0; // Kích thước nét vẽ mặc định
+  double strokeWidth = 5.0;
 
   GlobalKey globalKey = GlobalKey();
-  Offset? _stickerPosition;
 
   List<Sticker> stickers = [
-    Sticker(image: const AssetImage('assets/stickers/cat.png')),
-    // Thêm các sticker khác tại đây
+    Sticker(image: AssetImage('assets/stickers/cat.png')),
+    Sticker(image: AssetImage('assets/stickers/love.png')),
   ];
+  List<Sticker> selectedStickers = [];
+  List<Offset> stickerOffsets = [];
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +49,7 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
               RenderBox renderBox = context.findRenderObject() as RenderBox;
               if (allPoints.isEmpty) {
                 allPoints.add([]);
-                colors.add(selectedColor); // Thêm màu mực cho đường vẽ mới
+                colors.add(selectedColor);
               }
               allPoints.last.add(renderBox.globalToLocal(details.globalPosition));
               allStokeWidths.last.add(PointWithStroke(
@@ -59,9 +60,9 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
           },
           onPanEnd: (details) {
             setState(() {
-              allPoints.add([]); // Thêm null để kết thúc một đường vẽ
+              allPoints.add([]);
               allStokeWidths.add([]);
-              colors.add(selectedColor); // Thêm màu mực cho đường vẽ mới
+              colors.add(selectedColor);
             });
           },
           child: Stack(
@@ -70,11 +71,32 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
                 painter: DrawPainter(allPoints: allPoints, colors: colors, allStokeWidths: allStokeWidths),
                 size: Size.infinite,
               ),
-              for (var sticker in stickers) Positioned(
-                left: _stickerPosition?.dx ?? 50.0,
-                top: _stickerPosition?.dy ?? 50.0,
-                child: StickerWidget(sticker: sticker, onDrop: onDropSticker, initialOffset: _stickerPosition ?? Offset(50.0, 50.0)),
-              ),
+              for (var i = 0; i < selectedStickers.length; i++)
+                // Trong phần build của _DrawAppScreenState
+                Positioned(
+                  left: stickerOffsets.isEmpty ? 150.0 : stickerOffsets[i].dx,
+                  top: stickerOffsets.isEmpty ? 150.0 : stickerOffsets[i].dy,
+                  child: Draggable<Sticker>(
+                    data: selectedStickers[i],
+                    feedback: Image(image: selectedStickers[i].image, width: 100.0, height: 100.0),
+                    childWhenDragging: Container(), // Ẩn sticker khi đang kéo
+                    onDraggableCanceled: (velocity, offset) {
+                      if (stickerOffsets.length > i) {
+                        double roundedX = offset.dx.roundToDouble();
+                        double roundedY = offset.dy.roundToDouble();
+                        setState(() {
+                          stickerOffsets[i] = Offset(roundedX, roundedY); // Cập nhật vị trí mới cho sticker
+                        });
+                      }
+                    },
+                    child: GestureDetector(
+                      onPanUpdate: (details) {
+                        print("Sticker position when dragged: ${details.globalPosition}");
+                      },
+                      child: Image(image: selectedStickers[i].image, width: 100.0, height: 100.0),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -82,7 +104,7 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            allPoints.clear(); // Xóa tất cả điểm để xóa bản vẽ
+            allPoints.clear();
           });
         },
         child: const Icon(Icons.clear),
@@ -122,14 +144,15 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
                         itemBuilder: (context, index) {
                           return InkWell(
                             onTap: () {
-                              Navigator.pop(context); // Close the bottom sheet
+                              Navigator.pop(context);
                               setState(() {
-                                _stickerPosition = null; // Clear any previous sticker position
+                                selectedStickers.add(stickers[index]); // Thêm sticker vào danh sách đã chọn
+                                stickerOffsets.add(const Offset(100.0, 100.0)); // Thêm một Offset mặc định cho sticker mới
                               });
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Image(image: stickers[index].image),
+                              child: Image(image: stickers[index].image, width: 50.0, height: 50.0),
                             ),
                           );
                         },
@@ -140,31 +163,30 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
               },
               icon: Icon(Icons.sticky_note_2),
             ),
-            // Thêm các nút màu khác tại đây
           ],
         ),
       ),
     );
   }
 
-  // Hàm callback được gọi khi một màu được chọn
   void onSelectColor(Color color) {
     setState(() {
       selectedColor = color;
-      colors[colors.length - 1] = selectedColor; // Cập nhật màu mực cho đường vẽ hiện tại
+      colors[colors.length - 1] = selectedColor;
     });
   }
 
   void onDropSticker(Sticker droppedSticker, Offset position) {
     setState(() {
-      _stickerPosition = position;
+      //_stickerPosition = position;
+      selectedStickers.add(droppedSticker);
     });
   }
 
   Future<void> _saveImage() async {
     try {
       RenderRepaintBoundary? boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary?;
-      ui.Image image = await boundary!.toImage(pixelRatio: 3.0); // Pixel ratio can be adjusted based on the need
+      ui.Image image = await boundary!.toImage(pixelRatio: 3.0);
 
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List? pngBytes = byteData?.buffer.asUint8List();
@@ -178,12 +200,11 @@ class _DrawAppScreenState extends State<DrawAppScreen> {
   }
 }
 
-// Widget để hiển thị nút chọn màu
 class ColorButton extends StatelessWidget {
   final Color color;
   final Function(Color) onSelect;
 
-  const ColorButton(this.color, this.onSelect, {super.key});
+  const ColorButton(this.color, this.onSelect, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -217,13 +238,11 @@ class DrawPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Vẽ hình chữ nhật màu trắng với kích thước bằng CustomPaint
     Paint backgroundPaint = Paint()..color = Colors.white;
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), backgroundPaint);
 
     for (int i = 0; i < allPoints.length; i++) {
       if (i < colors.length && allPoints[i].isNotEmpty) {
-        // Kiểm tra số lượng màu mực trước khi truy cập
         Paint paint = Paint()
           ..color = colors[i]
           ..strokeCap = StrokeCap.round
@@ -249,7 +268,7 @@ class StickerWidget extends StatelessWidget {
   final Function(Sticker, Offset) onDrop;
   final Offset initialOffset;
 
-  const StickerWidget({super.key, required this.sticker, required this.onDrop, required this.initialOffset});
+  const StickerWidget({Key? key, required this.sticker, required this.onDrop, required this.initialOffset}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -264,4 +283,3 @@ class StickerWidget extends StatelessWidget {
     );
   }
 }
-
