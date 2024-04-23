@@ -75,6 +75,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   image_gallery_saver:
     dependency: "direct main"
     description:
@@ -83,6 +91,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      sha256: b10a7b2ff83d83c777edba3c6a0f97045ddadd56c944e1a23a3fdf43a1bf4467
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.8.1"
   lints:
     dependency: transitive
     description:
@@ -123,6 +139,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.3"
+  perfect_freehand:
+    dependency: transitive
+    description:
+      name: perfect_freehand
+      sha256: "6ced289209b3b26dc23c8d21960ceff3d39442cebd8e12ce722c4385c63553e5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
+  scribble:
+    dependency: "direct main"
+    description:
+      name: scribble
+      sha256: bcaffadf6d7a04ee2880f8043351c819f18d339892cd9ea4b8c32423d165d19c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.0+1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -176,6 +208,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.1"
+  value_notifier_tools:
+    dependency: "direct main"
+    description:
+      name: value_notifier_tools
+      sha256: "504f1367a4d4cc55498335950e8c4a131692befbcc413b1bc0f92f6743b710a7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   vector_math:
     dependency: transitive
     description:
@@ -194,4 +234,4 @@ packages:
     version: "0.3.0"
 sdks:
   dart: ">=3.2.3 <4.0.0"
-  flutter: ">=1.17.0"
+  flutter: ">=3.10.0"

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ww_open_test/features/part_1/screen/draw_app_screen.dart';
+import 'package:ww_open_test/features/part_1/screen/draw_app2_screen.dart';
 import 'package:ww_open_test/features/part_2/screen/animation_example_screen.dart';
 
 class WWHomeScreen extends StatelessWidget {
